@@ -1,0 +1,6 @@
+*.pyc
+*.p
+*.pt
+*.mat
+trained_models*
+slurm*
