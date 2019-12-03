@@ -4,3 +4,4 @@
 *.mat
 trained_models*
 slurm*
+results*

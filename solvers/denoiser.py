@@ -46,7 +46,7 @@ def GlowDenoiser(args):
             
         # regularizor
         gamma = torch.tensor(gamma, requires_grad=True, dtype=torch.float, device=args.device)
-        
+
         # getting test images
         Original  = []
         Recovered = []
@@ -169,7 +169,7 @@ def GlowDenoiser(args):
         Recovered = np.vstack(Recovered)
         Noisy     = np.vstack(Noisy)
         psnr      = [compare_psnr(x, y) for x,y in zip(Original, Recovered)]
-    
+
         # print performance analysis
         printout = "+-"*10 + "%s"%args.dataset + "-+"*10 + "\n"
         printout = printout + "\t n_test     = %d\n"%len(Recovered)
@@ -180,12 +180,12 @@ def GlowDenoiser(args):
         if args.save_metrics_text:
             with open("%s_denoising_glow_results.txt"%args.dataset,"a") as f:
                 f.write('\n' + printout)
-        
+
         # saving images
         if args.save_results:
             gamma = gamma.item()
             file_names = [name[0].split("/")[-1].split(".")[0] for name in test_dataset.samples]
-            save_path = save_path + "/denoising_noisestd_%0.4f_gamma_%0.6f_steps_%d_lr_%0.3f_init_std_%0.2f_optim_%s"            
+            save_path = save_path + "/denoising_noisestd_%0.4f_gamma_%0.6f_steps_%d_lr_%0.3f_init_std_%0.2f_optim_%s"
             save_path = save_path%(args.noise_std, gamma, args.steps, args.lr, args.init_std, args.optim)
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
