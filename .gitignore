@@ -2,6 +2,8 @@
 *.p
 *.pt
 *.mat
+*.sh
 trained_models*
 slurm*
 results*
+*.txt
