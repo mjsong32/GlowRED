@@ -95,30 +95,6 @@ The results of each experiment will be saved in the ```results``` directory.
 <br/>
 <br/>
 
-**Run all experiments from paper**
-
-To reproduce all experiments from paper, run all the shell scripts in the folder ```run/``` from the root directory of the project. For example,
-
-```shell
-# reproduce results of cs on out-of-distribution (ood) using glow prior
-./run/run_ood_cs_glow_main.sh
-
-# reproduce results of denoising on celeba using glow prior at noise level 0.1
-./run/run_celeba_denoising_glow_noisestd_0.10.sh
-```
-
-<br/>
-<br/>
-<br/>
-
-**Generate Plots from paper**
-
-All experiments from paper have been compiled as  ```*.csv``` files in ```plot/csv/``` to reproduce plots from paper. Plots and their generating codes have been provided in ```plots.ipynb``` notebook.
-
-<br/>
-<br/>
-<br/>
-
 **Custom  Datasets**
 
 To run experiments on any custom set of images, simply place the new set of images in the ```test_images``` folder with directory hierarchy matching the other image folders. The folder structure should be like  ```test_images/{custom}/imgs/```.  See example below.
