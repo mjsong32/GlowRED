@@ -1,22 +1,9 @@
-# GlowIP
-Code to reproduce results from the [paper](https://arxiv.org/abs/1905.11672), **"Invertible generative models for inverse problems: mitigating representation error and dataset bias"** by M. Asim, Ali Ahmed and Paul Hand.
+# GlowRED
+Code to reproduce results from my final project for Computer Vision (CSCI-GA.2271-001).
 
+This repo is a minor modification of this repo: [https://github.com/CACTuS-AI/GlowIP](https://github.com/CACTuS-AI/GlowIP). You can also check out their cool [paper](https://arxiv.org/abs/1905.11672), **"Invertible generative models for inverse problems: mitigating representation error and dataset bias"** by M. Asim, Ali Ahmed and Paul Hand.
 
-
-In this paper, we demonstrate that an invertible generative model, specifically GLOW, which have zero representation error by design, can be effective natural signal priors at inverse problems such as denoising, compressive sensing, and inpainting.
-
-
-| ![image](./images/cs_plot.png) | ![image](./images/denoising_plot.png) |
-| :---: | :---: |
-| <b> Compressive Sensing </b> | <b> Denoising </b> |
-
-| ![image](./images/cs_visual_m750.jpg) |
-| :---: |
-| <b>Compressive Sensing at m=750 (6%) measurements</b> |
-
-| ![image](./images/denoising_visual.jpg) |
-| :---: |
-| <b> Denoising</b> |
+Inspired by [RED](https://arxiv.org/abs/1611.02862) and [DeepRED](https://arxiv.org/abs/1903.10176), I implemented GlowRED, which uses priors of both generative models and denoisers to solve inverse problems in imaging. 
 
 <br/>
 <br/>
@@ -120,8 +107,6 @@ To reproduce all experiments from paper, run all the shell scripts in the folder
 ./run/run_celeba_denoising_glow_noisestd_0.10.sh
 ```
 
-
-
 <br/>
 <br/>
 <br/>
@@ -143,8 +128,6 @@ To run experiments on any custom set of images, simply place the new set of imag
 python solve_cs.py -experiment exp4 -dataset {custom} -prior glow -model celeba \
 -m 5000 -gamma 0 -init_std 0 -device cuda
 ```
-
-
 
 <br/>
 <br/>
@@ -189,18 +172,3 @@ python align_faces/align_faces.py -input {path_to_image} -output {path_to_output
 <br/>
 <br/>
 <br/>
-
-**Citation**
-
-If you find our work useful in your research or publication, please cite it:
-
-```
-@article{asim2019invertible,
-  title={Invertible generative models for inverse problems: mitigating representation error and dataset bias},
-  author={Asim, Muhammad and Ahmed, Ali and Hand, Paul},
-  journal={arXiv preprint arXiv:1905.11672},
-  year={2019}
-}
-
-```
-
