@@ -16,10 +16,14 @@ import os
 from glob import glob
 import easydict
 from scipy.linalg import null_space
+from rk2_heun import RK2Heun
+from rk2_updown import RK2Raghav
 import warnings
+import pandas as pd
 warnings.filterwarnings("ignore")
 
 def solveCS(args):
+    filename = f"./logs/{args.prior}_{args.optim}_{args.lr}"
     if args.prior == 'glow':
         GlowCS(args)
     elif args.prior == 'dcgan':
@@ -29,7 +33,7 @@ def solveCS(args):
     elif args.prior == 'dct':
         DCTCS(args)
     elif args.prior == 'glowred':
-        GlowREDCS(args)
+        GlowREDCS(args, filename)
     else:
         raise "prior not defined correctly"
 
@@ -64,7 +68,7 @@ def Denoiser(d_name, sigma_f, x_f):
     x_f = np_to_torch(x)
     return x_f
 
-def GlowREDCS(args):
+def GlowREDCS(args, filename=None):
     if args.init_norms == None:
         args.init_norms = [None] * len(args.m)
     else:
@@ -112,6 +116,7 @@ def GlowREDCS(args):
         # start solving over batches
         Original = [];
         Recovered = [];
+        Recovered_f = [];
         Z_Recovered = [];
         Residual_Curve = [];
         Recorded_Z = []
@@ -235,6 +240,12 @@ def GlowREDCS(args):
                 optimizer = torch.optim.Adam([z_sampled], lr=args.lr, )
             elif args.optim == "lbfgs":
                 optimizer = torch.optim.LBFGS([z_sampled], lr=args.lr, )
+            elif args.optim == "rk2":
+                optimizer = RK2Heun([z_sampled], lr=args.lr)
+            elif args.optim == "raghav":
+                optimizer = RK2Raghav([z_sampled], lr=args.lr)
+            elif args.optim == "sgd":
+                optimizer = torch.optim.SGD([z_sampled], lr=args.lr, momentum=0.9)
             else:
                 raise "optimizer not defined"
 
@@ -244,6 +255,13 @@ def GlowREDCS(args):
             recorded_z = []
             x_f = x_lasso.clone()
             u = torch.zeros_like(x_test)
+
+            df_losses = pd.DataFrame(columns=["loss_t", "residual_t", "residual_x", "z_reg_loss"])
+
+            ##################
+            alpha = args.alpha
+            beta = args.beta
+            ##################
 
             # running optimizer steps
             for t in range(args.steps):
@@ -263,9 +281,15 @@ def GlowREDCS(args):
                     loss_t = residual_t + z_reg_loss_t + residual_x
                     psnr = psnr_t(x_test, x_gen)
                     psnr = 10 * np.log10(1 / psnr.item())
-                    print("\rAt step=%0.3d|loss=%0.4f|residual_t=%0.4f|residual_x=%0.4f|z_reg=%0.5f|psnr=%0.3f" % (
-                    t, loss_t.item(), residual_t.item(), residual_x.item(), z_reg_loss_t.item(), psnr), end="\r")
+                    print("At step=%0.3d|loss=%0.4f|residual_t=%0.4f|residual_x=%0.4f|z_reg=%0.5f|psnr=%0.3f" % (
+                    t, loss_t.item(), residual_t.item(), residual_x.item(), z_reg_loss_t.item(), psnr))
                     loss_t.backward()
+
+                    update = [loss_t.item(), residual_t.item(), residual_x.item(), z_reg_loss_t.item()]
+                    df_losses.loc[(len(df_losses))] = update
+
+                    df_losses.to_csv(filename)
+
                     return loss_t
 
                 def denoiser_step(x_f, u):
@@ -282,6 +306,9 @@ def GlowREDCS(args):
                 residual.append(residual_t.item())
                 if t % args.update_iter == args.update_iter - 1:
                     x_f, u = denoiser_step(x_f, u)
+
+                # if t == args.steps//2:
+                #     gamma /= 10
 
                 # try:
                 #     optimizer.step(closure)
@@ -303,9 +330,12 @@ def GlowREDCS(args):
                 x_gen = glow.postprocess(x_gen, floor_clamp=False)
                 x_gen_np = x_gen.data.cpu().numpy().transpose(0, 2, 3, 1)
                 x_gen_np = np.clip(x_gen_np, 0, 1)
+                x_f_np = x_f.cpu().numpy().transpose(0, 2, 3, 1)
+                x_f_np = np.clip(x_f_np, 0, 1)
                 z_recov = z_sampled.data.cpu().numpy()
             Original.append(x_test_np)
             Recovered.append(x_gen_np)
+            Recovered_f.append(x_f_np)
             Z_Recovered.append(z_recov)
             Residual_Curve.append(residual)
             Recorded_Z.append(recorded_z)
@@ -324,9 +354,11 @@ def GlowREDCS(args):
         # collecting everything together
         Original = np.vstack(Original)
         Recovered = np.vstack(Recovered)
+        Recovered_f = np.vstack(Recovered_f)
         Z_Recovered = np.vstack(Z_Recovered)
         Recorded_Z = np.vstack(Recorded_Z)
         psnr = [compare_psnr(x, y) for x, y in zip(Original, Recovered)]
+        psnr_f = [compare_psnr(x, y) for x, y in zip(Original, Recovered_f)]
         z_recov_norm = np.linalg.norm(Z_Recovered, axis=-1)
 
         # print performance analysis
@@ -346,7 +378,8 @@ def GlowREDCS(args):
         if init_norm is not None:
             printout = printout + "\t init_norm     = %0.3f\n" % init_norm
         printout = printout + "\t z_recov_norm  = %0.3f\n" % np.mean(z_recov_norm)
-        printout = printout + "\t PSNR          = %0.3f\n" % (np.mean(psnr))
+        printout = printout + "\t mean PSNR     = %0.3f\n" % (np.mean(psnr))
+        printout = printout + "\t mean PSNR_f   = %0.3f\n" % (np.mean(psnr_f))
         print(printout)
 
         # saving printout
@@ -382,9 +415,12 @@ def GlowREDCS(args):
                         save_path = save_path_2
             # saving results now
             _ = [sio.imsave(save_path + "/" + name, x) for x, name in zip(Recovered, file_names)]
+            print(save_path+"/"+file_names[0])
+            _ = [sio.imsave(save_path + "/f_" + name, x) for x, name in zip(Recovered_f, file_names)]
             Residual_Curve = np.array(Residual_Curve).mean(axis=0)
             np.save(save_path + "/original.npy", Original)
             np.save(save_path + "/recovered.npy", Recovered)
+            np.save(save_path + "/recovered_f.npy", Recovered_f)
             np.save(save_path + "/z_recovered.npy", Z_Recovered)
             np.save(save_path + "/residual_curve.npy", Residual_Curve)
             if init_norm is not None:

@@ -7,3 +7,6 @@ trained_models*
 slurm*
 results*
 *.txt
+logs*
+rk2*
+test_images/*

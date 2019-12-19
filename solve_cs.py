@@ -15,6 +15,7 @@ if __name__ == "__main__":
     parser.add_argument('-gamma',  type=float, nargs='+',help='regularizor',default=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
     parser.add_argument('-alpha', type=float, help='red multiplier', default=0.1)
     parser.add_argument('-beta', type=float, help='consistency multiplier', default=0.1)
+    parser.add_argument('-multiplier', type=int, help='use multiplier decay schedule', default=0)
     parser.add_argument('-optim', type=str, help='optimizer', default="lbfgs")
     parser.add_argument('-lr', type=float, help='learning rate', default=0.1)
     parser.add_argument('-steps',type=int,help='no. of steps to run', default=30)
