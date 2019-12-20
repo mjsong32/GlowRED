@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('-optim', type=str, help='optimizer', default="lbfgs")
     parser.add_argument('-lr', type=float, help='learning rate', default=0.1)
     parser.add_argument('-steps',type=int,help='no. of steps to run', default=30)
-    parser.add_argument('-batchsize',type=int, help='no. of images to solve in parallel as batches',default=6)
+    parser.add_argument('-batchsize',type=int, help='no. of images to solve in parallel as batches',default=6) # batch size must be 2 for glowred prior
     parser.add_argument('-size',type=int, help='resize all images to this size', default=64)
     parser.add_argument('-device',type=str,help='device to use', default='cuda')
     parser.add_argument('-noise',type=str, help='noise to add. Either random_bora or float representing std of gaussian noise', default="random_bora")

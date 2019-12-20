@@ -83,6 +83,7 @@ def GlowREDDenoiser(args):
         beta = args.beta
 
         # getting test images
+        gen_steps = []
         Original = []
         Recovered = []
         Noisy = []
@@ -179,6 +180,13 @@ def GlowREDDenoiser(args):
                 residual.append(residual_t.item())
                 if t % args.update_iter == args.update_iter - 1:
                     x_f, u = denoiser_step(x_f, u)
+                with torch.no_grad():
+                    z_unflat = glow.unflatten_z(z_sampled, clone=False)
+                    x_gen = glow(z_unflat, reverse=True, reverse_clone=False)
+                    x_gen = glow.postprocess(x_gen, floor_clamp=False)
+                    x_gen_np = x_gen.data.cpu().numpy().transpose(0, 2, 3, 1)
+                    x_gen_np = np.clip(x_gen_np, 0, 1)
+                    gen_steps.append(x_gen_np)
 
                 # try:
                 #     optimizer.step(closure)
@@ -223,6 +231,7 @@ def GlowREDDenoiser(args):
         # metric evaluations
         Original = np.vstack(Original)
         Recovered = np.vstack(Recovered)
+        gen_steps = np.vstack(gen_steps)
         Noisy = np.vstack(Noisy)
         psnr = [compare_psnr(x, y) for x, y in zip(Original, Recovered)]
 
@@ -265,6 +274,7 @@ def GlowREDDenoiser(args):
             np.save(save_path + "/original.npy", Original)
             np.save(save_path + "/recovered.npy", Recovered)
             np.save(save_path + "/noisy.npy", Noisy)
+            np.save(save_path + "/gen_steps.npy", gen_steps)
 
 
 def GlowDenoiser(args):
