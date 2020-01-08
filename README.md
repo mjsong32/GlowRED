@@ -1,6 +1,4 @@
 # GlowRED
-Code to reproduce results from my final project for Computer Vision (CSCI-GA.2271-001).
-
 This repo is a minor modification of this repo: [https://github.com/CACTuS-AI/GlowIP](https://github.com/CACTuS-AI/GlowIP). You can also check out their cool [paper](https://arxiv.org/abs/1905.11672), **"Invertible generative models for inverse problems: mitigating representation error and dataset bias"** by M. Asim, Ali Ahmed and Paul Hand.
 
 Inspired by [RED](https://arxiv.org/abs/1611.02862) and [DeepRED](https://arxiv.org/abs/1903.10176), I implemented GlowRED, which uses priors of both generative models and denoisers to solve inverse problems in imaging. 
